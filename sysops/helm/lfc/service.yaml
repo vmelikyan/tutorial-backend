@@ -1,0 +1,75 @@
+---
+env: lfc # Short name of the environment (sbx, stg or prd)
+component: app # Component name, should be equal to component name in Codefresh pipeline and name of this yml file.
+componentType: server # Component (server, cron, migrations, etc)
+
+serviceAccount:
+  create: false
+  name: "default"
+
+ports:
+  - name: http
+    protocol: TCP
+    servicePort: 8080
+    containerPort: 8080
+
+ingress:
+  port: 8080
+
+deployment:
+  customNodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: eks.amazonaws.com/capacityType
+              operator: In
+              values:
+                - ON_DEMAND
+
+  replicaCount: 1
+
+  terminationGracePeriodSeconds: 300
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+  # Probe values can be tuned according to particular application requirements
+  # https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes
+  startupProbe:
+    periodSeconds: 5
+    failureThreshold: 60
+    httpGet:
+      scheme: HTTP
+      path: /health
+      port: 8080
+
+  readinessProbe:
+    periodSeconds: 10
+    failureThreshold: 3
+    httpGet:
+      scheme: HTTP
+      path: /health
+      port: 8080
+
+  livenessProbe:
+    periodSeconds: 60
+    timeoutSeconds: 59
+    failureThreshold: 5
+    httpGet:
+      scheme: HTTP
+      path: /health
+      port: 8080
+
+  # Slowly rollout new pods during a deployment to
+  # prevent too many being unavailable at any given time
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 100%
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80

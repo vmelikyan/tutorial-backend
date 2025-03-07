@@ -1,0 +1,80 @@
+---
+env: lfc # Short name of the environment (sbx, stg or prd)
+component: db # Component name, should be equal to component name in Codefresh pipeline and name of this yml file.
+componentType: db # Component (server, cron, migrations, etc)
+
+serviceAccount:
+  create: false
+  name: "default"
+
+ports:
+  - name: http
+    protocol: TCP
+    servicePort: 5432
+    containerPort: 5432
+
+ingress:
+  port: 8080
+
+deployment:
+  customNodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: eks.amazonaws.com/capacityType
+              operator: In
+              values:
+                - ON_DEMAND
+
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  startupProbe:
+    exec:
+      command:
+        - pg_isready
+        - -U
+        - lifecycle
+        - -d
+        - tasks
+    initialDelaySeconds: 10 # Allow time for PostgreSQL to initialize
+    periodSeconds: 5
+    failureThreshold: 30 # Wait for up to 150s before failing
+
+  readinessProbe:
+    exec:
+      command:
+        - pg_isready
+        - -U
+        - lifecycle
+        - -d
+        - tasks
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    failureThreshold: 3 # Fail after 3 unsuccessful attempts
+
+  livenessProbe:
+    exec:
+      command:
+        - pg_isready
+        - -U
+        - lifecycle
+        - -d
+        - tasks
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 5 # Restart container if unhealthy for ~50s
+
+  # Slowly rollout new pods during a deployment to
+  # prevent too many being unavailable at any given time
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 100%
+
+autoscaling:
+  enabled: false

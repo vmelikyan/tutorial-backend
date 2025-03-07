@@ -1,0 +1,7 @@
+FROM postgres:13
+
+COPY migrations/*.sql /docker-entrypoint-initdb.d/
+
+ENV POSTGRES_DB=tasks
+ENV POSTGRES_USER=demouser
+ENV POSTGRES_PASSWORD=willnottell 

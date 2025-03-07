@@ -1,0 +1,50 @@
+---
+version: "1.2.0"
+
+environment:
+  defaultServices:
+    - name: "tutorial-backend"
+
+services:
+  - name: tutorial-backend
+    defaultUUID: "tutorial-dev-0"
+    requires:
+      - name: "tutorial-db"
+    helm:
+      repository: "vmelikyan/tutorial-backend"
+      branchName: "main"
+      chart:
+        name: "demo-app"
+        valueFiles:
+          - "sysops/helm/common.yaml"
+          - "sysops/helm/lfc/service.yaml"
+      docker:
+        defaultTag: "main"
+        app:
+          dockerfilePath: "Dockerfile.app"
+          ports:
+            - 8080
+          env:
+            DATABASE_URL: "{{tutorial-db_internalHostname}}"
+            DATABASE_PORT: 5432
+
+  - name: "tutorial-db"
+    defaultUUID: "tutorial-dev-0"
+    helm:
+      repository: "vmelikyan/tutorial-backend"
+      branchName: "main"
+      chart:
+        name: "demo-app"
+        valueFiles:
+          - "sysops/helm/common.yaml"
+          - "sysops/helm/lfc/db.yaml"
+      docker:
+        defaultTag: "main"
+        app:
+          dockerfilePath: "Dockerfile.db"
+          ports:
+            - 5432
+          env:
+            POSTGRES_DB: tasks
+            POSTGRES_USER: demouser
+            POSTGRES_PASSWORD: willnottell
