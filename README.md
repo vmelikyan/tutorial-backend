@@ -1,3 +1,5 @@
+Scale demo
+
 # Tutorial Backend Application
 
 This is a simple Golang API server, that has 3 endpoints
