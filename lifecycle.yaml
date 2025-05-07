@@ -4,6 +4,7 @@ version: "2.1.0"
 environment:
   defaultServices:
     - name: "tutorial-backend"
+    - name: 'tutorial-db'
 
 services:
   - name: tutorial-backend
@@ -38,7 +39,7 @@ services:
           defaultInternalHostname: 'tutorial-backend-dev-0'
           defaultPublicUrl: 'tutorial-backend-dev-0.0env.com'
 
-  - name: 'tutorial-dbb'
+  - name: 'tutorial-db'
     docker:
       dockerImage: 'postgres'
       defaultTag: '14.3-alpine'
