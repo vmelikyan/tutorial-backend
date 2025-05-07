@@ -4,6 +4,7 @@ version: "2.1.0"
 environment:
   defaultServices:
     - name: "tutorial-backend"
+    - name: 'tutorial-dbb'
 
 services:
   - name: tutorial-backend
