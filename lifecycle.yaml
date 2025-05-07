@@ -1,5 +1,5 @@
 ---
-version: "1.2.0"
+version: "2.1.0"
 
 environment:
   defaultServices:
@@ -10,14 +10,9 @@ services:
     defaultUUID: "tutorial-dev-0"
     requires:
       - name: "tutorial-db"
-    helm:
+    github:
       repository: "vmelikyan/tutorial-backend"
-      branchName: "main"
-      chart:
-        name: "demo-app"
-        valueFiles:
-          - "sysops/helm/common.yaml"
-          - "sysops/helm/lfc/service.yaml"
+      branchName: "github-type"
       docker:
         defaultTag: "main"
         app:
@@ -27,24 +22,43 @@ services:
           env:
             DATABASE_URL: "{{tutorial-db_internalHostname}}"
             DATABASE_PORT: 5432
+      deployment:
+        public: true
+        resource:
+          cpu:
+            request: '10m'
+          memory:
+            request: '50Mi'
+        readiness:
+          tcpSocketPort: 8080
+        hostnames:
+          host: '0env.com'
+          defaultInternalHostname: 'tutorial-backend-dev-0'
+          defaultPublicUrl: 'tutorial-backend-dev-0.0env.com'
 
-  - name: "tutorial-db"
-    defaultUUID: "tutorial-dev-0"
-    helm:
-      repository: "vmelikyan/tutorial-backend"
-      branchName: "main"
-      chart:
-        name: "demo-app"
-        valueFiles:
-          - "sysops/helm/common.yaml"
-          - "sysops/helm/lfc/db.yaml"
-      docker:
-        defaultTag: "main"
-        app:
-          dockerfilePath: "Dockerfile.db"
-          ports:
-            - 5432
-          env:
-            POSTGRES_DB: tasks
-            POSTGRES_USER: demouser
-            POSTGRES_PASSWORD: willnottell
+  - name: 'tutorial-dbb'
+    docker:
+      dockerImage: 'postgres'
+      defaultTag: '14.3-alpine'
+      ports:
+        - 5432
+      env:
+        POSTGRES_USER: 'demouser'
+        POSTGRES_PASSWORD: 'willnottell'
+        POSTGRES_DB: 'tasks'
+        SERVICE: 'postgres-db'
+        PGDATA: '/var/lib/postgresql/data/pgdata'
+      deployment:
+        public: false
+        resource:
+          cpu:
+            request: '10m'
+          memory:
+            request: '100Mi'
+        readiness:
+          tcpSocketPort: 5432
+        serviceDisks:
+          - name: 'postgres-volume'
+            mountPath: '/var/lib/postgresql/data'
+            accessModes: 'ReadWriteOnce'
+            storageSize: '5Gi'
