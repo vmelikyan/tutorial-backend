@@ -24,7 +24,7 @@ services:
             - 8080
           env:
             DATABASE_URL: "{{tutorial-db_internalHostname}}"
-            DATABASE_PORT: 5432
+            DATABASE_PORT: '5432'
       deployment:
         public: true
         resource:
