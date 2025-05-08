@@ -64,7 +64,7 @@ services:
           memory:
             request: '50Mi'
         readiness:
-          tcpSocketPort: 8080
+          tcpSocketPort: 4325
         hostnames:
           host: '0env.com'
           defaultInternalHostname: 'tutorial-db-dev-0'
