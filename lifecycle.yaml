@@ -39,29 +39,31 @@ services:
           defaultInternalHostname: 'tutorial-backend-dev-0'
           defaultPublicUrl: 'tutorial-backend-dev-0.0env.com'
 
-  - name: 'tutorial-db'
-    docker:
-      dockerImage: 'postgres'
-      defaultTag: '14.3-alpine'
-      ports:
-        - 5432
-      env:
-        POSTGRES_USER: 'demouser'
-        POSTGRES_PASSWORD: 'willnottell'
-        POSTGRES_DB: 'tasks'
-        SERVICE: 'postgres-db'
-        PGDATA: '/var/lib/postgresql/data/pgdata'
+  - name: tutorial-db
+    defaultUUID: "tutorial-dev-0"
+    github:
+      repository: "vmelikyan/tutorial-backend"
+      branchName: "main"
+      docker:
+        defaultTag: "main"
+        app:
+          dockerfilePath: "Dockerfile.db"
+          ports:
+            - 5432
+          env:
+            POSTGRES_DB: tasks
+            POSTGRES_USER: demouser
+            POSTGRES_PASSWORD: willnottell
       deployment:
         public: false
         resource:
           cpu:
             request: '10m'
           memory:
-            request: '100Mi'
+            request: '50Mi'
         readiness:
-          tcpSocketPort: 5432
-        serviceDisks:
-          - name: 'postgres-volume'
-            mountPath: '/var/lib/postgresql/data'
-            accessModes: 'ReadWriteOnce'
-            storageSize: '5Gi'
+          tcpSocketPort: 8080
+        hostnames:
+          host: '0env.com'
+          defaultInternalHostname: 'tutorial-db-dev-0'
+          defaultPublicUrl: 'tutorial-db-dev-0.0env.com'
